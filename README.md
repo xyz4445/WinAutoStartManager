@@ -1,5 +1,7 @@
 # 开机启动管理器 · WinAutoStartManager
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 一个单文件 Windows 小工具：用图形界面维护启动清单，在**用户登录时**按「管理员 / 普通」两个权限层静默启动指定程序。登录阶段**不弹 UAC**。
 
 ![主界面](docs/screenshot.jpg)
@@ -87,4 +89,6 @@ sha256sum WinAutoStartManager.exe    # 当前应为 c39ee321...ecda14
 
 ## 许可
 
-本项目尚未声明开源许可证。如需在自身项目中复用，请先联系作者。
+[MIT License](LICENSE) © 2026 xyz4445
+
+你可以自由使用、修改、分发本项目，包括商业用途，只需保留版权声明与许可文本。软件按「原样」提供，不附带任何担保。
