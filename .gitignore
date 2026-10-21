@@ -17,8 +17,11 @@ docs/superpowers/
 /autostart-manager
 /autostart-manager.exe
 
-# 生成的 Windows 资源文件（由 rsrc/make-icon 生成）
+# Windows 资源文件：rsrc.syso 由 rsrc 工具生成，包含图标等资源。
+# 它被有意纳入版本控制，以保证新环境 clone 后无需重新生成资源即可
+# 构建出带图标的相同二进制包。其余 .syso 一律忽略。
 *.syso
+!rsrc.syso
 
 # 依赖目录
 /vendor/
