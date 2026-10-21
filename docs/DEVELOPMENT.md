@@ -1,6 +1,11 @@
-# 开机启动管理器 · 开发者文档（dev.md）
+# 开发者文档
 
-本文面向维护者，说明项目结构、关键流程、内部约定、测试方式和排障手段。用户使用说明见 [README.md](README.md)。
+本文面向维护者，说明项目结构、关键流程、内部约定和测试方式。
+
+- 使用者请看：[USAGE.md](USAGE.md)
+- 构建与发布：[BUILD.md](BUILD.md)
+- 故障排查：[TROUBLESHOOTING.md](TROUBLESHOOTING.md)
+- 项目概览：[../README.md](../README.md)
 
 - 平台：Windows 10/11 x64
 - 语言：Go 1.27.3（以 `go.mod` 为准）
@@ -352,8 +357,16 @@ cmd.SysProcAttr = &syscall.SysProcAttr{
 go test ./... -count=1
 go vet ./...
 gofmt -l .\internal .\main.go
-go build -trimpath -ldflags "-s -w -H windowsgui" -o autostart-manager.exe .
+
+# 交叉编译代码检查（非 Windows 主机）
+GOOS=windows GOARCH=amd64 go build ./...
+GOOS=windows GOARCH=amd64 go vet ./...
+
+# 完整构建见 BUILD.md
+./build.sh
 ```
+
+> 在 Linux 上直接 `go build ./...` 会报 `build constraints exclude all Go files`，这是因为 Windows 专属文件被构建约束排除，属正常现象，需带 `GOOS=windows`。
 
 ### 11.2 覆盖范围
 
@@ -448,21 +461,21 @@ whoami /groups | Select-String 'Mandatory Label'
 ### 12.3 确认 exe 版本
 
 ```powershell
-Get-FileHash .\autostart-manager.exe -Algorithm SHA256
+Get-FileHash .\WinAutoStartManager.exe -Algorithm SHA256
 ```
 
-与构建记录对照；本轮最终构建为：
+与构建记录对照。确定性构建（`-buildvcs=false`）的当前值为：
 
 ```
-F2E391B9C80338B3E1B877AD24588E5DAC89CED9A5070BEEB76C47EA2CEF07C6
+c39ee3217f7ae580bdff8d1658d42c393d46f086a302b024c8c8960ba8ecda14
 ```
 
-`go build` 会重新生成不同哈希，发布时应记录本次构建的 SHA256。
+不加 `-buildvcs=false` 时 hash 会随 commit 变化，详见 [BUILD.md](BUILD.md#4-为什么必须-buildvcsfalse)。
 
 ### 12.4 确认子系统
 
 ```powershell
-$b = [IO.File]::ReadAllBytes('.\autostart-manager.exe')
+$b = [IO.File]::ReadAllBytes('.\WinAutoStartManager.exe')
 $pe = [BitConverter]::ToInt32($b, 0x3C)
 'subsystem=' + [BitConverter]::ToUInt16($b, $pe + 0x5C)
 ```
@@ -472,16 +485,12 @@ $pe = [BitConverter]::ToInt32($b, 0x3C)
 
 ## 13. 构建与发布
 
-```powershell
-go test ./... -count=1
-go vet ./...
-gofmt -l .\internal .\main.go
-go build -trimpath -ldflags "-s -w -H windowsgui" -o autostart-manager.exe .
-```
+完整的构建参数说明、可复现构建原理、图标生成和发布检查清单见 [BUILD.md](BUILD.md)。要点：
 
-- `rsrc.syso` 已包含图标资源；修改图标见 README。
-- 发布前记录 exe 大小、SHA256、子系统。
-- 依赖：`github.com/jchv/go-webview2`、`github.com/jchv/go-winloader`、`golang.org/x/sys`；不需要 C 编译器。
+- 一键构建：`./build.sh`（可在 Linux / macOS / WSL 上交叉编译）
+- `-buildvcs=false` 是确定性构建的必要条件
+- `rsrc.syso` 已入库，clone 后无需重新生成图标资源
+- 依赖：`github.com/jchv/go-webview2`、`github.com/jchv/go-winloader`、`golang.org/x/sys`；不需要 C 编译器
 
 ## 14. 不变量与设计决策
 
