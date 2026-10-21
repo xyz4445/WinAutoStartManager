@@ -1,0 +1,31 @@
+# 代理/工具过程产物
+.superpowers/
+
+# 规划与设计文档
+docs/superpowers/
+
+# 构建产物
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+/WinAutoStartManager
+/WinAutoStartManager.exe
+/autostart-manager
+/autostart-manager.exe
+
+# 生成的 Windows 资源文件（由 rsrc/make-icon 生成）
+*.syso
+
+# 依赖目录
+/vendor/
+
+# 编辑器与系统文件
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db

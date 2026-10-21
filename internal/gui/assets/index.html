@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>开机启动管理器</title>
+<style><!--{{CSS}}--></style>
+</head>
+<body>
+<div id="bootSplash" class="boot-splash" role="status" aria-live="polite">
+  <div class="boot-card">
+    <div class="boot-mark">
+      <span class="boot-ring" aria-hidden="true"></span>
+      <div class="logo splash" aria-hidden="true">▶</div>
+    </div>
+    <p>正在载入启动清单<span class="boot-dots" aria-hidden="true"><i></i><i></i><i></i></span></p>
+  </div>
+</div>
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">▶</div>
+      <div>
+        <h1>开机启动管理器</h1>
+        <p class="sub">登录时按权限层静默启动 · 不弹 UAC</p>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <div id="autoBox" class="autostart">
+        <label class="switch auto" title="登录 Windows 时按左侧清单启动">
+          <input type="checkbox" id="autoToggle" aria-label="开机自启">
+          <span class="track"></span>
+        </label>
+        <div class="as-text">
+          <strong>开机自启</strong>
+          <span class="as-state">
+            <span id="autoSpinner" class="spinner tiny" hidden aria-hidden="true"></span>
+            <span id="autoState" role="status" aria-live="polite">检查中…</span>
+          </span>
+        </div>
+      </div>
+      <span id="runChip" class="chip ghost">尚无运行记录</span>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="list-pane">
+      <div class="pane-head">
+        <h2>启动清单</h2>
+        <span id="countBadge" class="count">0</span>
+      </div>
+
+      <ul id="itemList" class="item-list"></ul>
+      <div id="listEmpty" class="list-empty" hidden>
+        <p>还没有条目</p>
+        <span>点击下方“新建条目”开始</span>
+      </div>
+
+      <div class="list-actions">
+        <button id="newBtn" type="button" class="btn wide">＋ 新建条目</button>
+      </div>
+    </section>
+
+    <section class="detail-pane">
+      <div id="detailEmpty" class="detail-empty">
+        <div class="big" aria-hidden="true">📋</div>
+        <h2>选择一个条目</h2>
+        <p>在左侧选择程序来编辑它的启动方式，或新建一个条目。</p>
+      </div>
+
+      <form id="detailForm" class="detail-form" hidden autocomplete="off">
+        <div class="detail-head">
+          <h2 id="detailTitle">条目</h2>
+          <label class="switch" title="禁用后不会在登录时启动">
+            <input type="checkbox" id="fEnabled">
+            <span class="track"></span>
+            <span class="switch-text">启用</span>
+          </label>
+        </div>
+
+        <div class="field">
+          <label for="fName">名称</label>
+          <input id="fName" type="text" maxlength="80" placeholder="例如：AutoHotkey 脚本">
+        </div>
+
+        <div class="field">
+          <label for="fPath">程序路径</label>
+          <div class="row">
+            <input id="fPath" type="text" placeholder="C:\Program Files\AutoHotkey\AutoHotkey.exe">
+            <button id="browseExe" type="button" class="btn small">浏览…</button>
+          </div>
+          <p id="pathHint" class="hint"></p>
+        </div>
+
+        <div class="field">
+          <label for="fArgs">启动参数</label>
+          <input id="fArgs" type="text" placeholder="可选，例如：mount G: remote: --vfs-cache-mode full">
+        </div>
+
+        <div class="field">
+          <label for="fWorkDir">工作目录</label>
+          <div class="row">
+            <input id="fWorkDir" type="text" placeholder="留空则使用程序所在目录">
+            <button id="browseDir" type="button" class="btn small">浏览…</button>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div class="field">
+            <label for="fDelay">延迟启动</label>
+            <div class="row tight">
+              <input id="fDelay" type="number" min="0" max="300" step="1">
+              <span class="unit">秒</span>
+            </div>
+            <p class="hint">从用户登录开始计算，不叠加在前一个程序之后。</p>
+          </div>
+
+          <div class="field">
+            <label>权限层</label>
+            <div class="segmented">
+              <label><input type="radio" name="tier" value="user"><span>普通</span></label>
+              <label><input type="radio" name="tier" value="admin"><span>管理员</span></label>
+            </div>
+            <p class="hint">管理员项静默提权；普通项不提权。</p>
+          </div>
+        </div>
+
+        <div id="lastRunBox" class="lastrun" hidden></div>
+
+        <div class="detail-actions">
+          <button id="runBtn" type="button" class="btn">▶ 测试运行</button>
+          <button id="deleteBtn" type="button" class="btn danger-ghost">删除条目</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-left">
+      <button id="logsBtn" type="button" class="linkbtn">打开日志</button>
+      <button id="dirBtn" type="button" class="linkbtn">数据目录</button>
+      <span id="configPath" class="pathhint"></span>
+    </div>
+    <div class="footer-right">
+      <span id="saveState" class="savestate" role="status" aria-live="polite"></span>
+      <button id="settingsBtn" type="button" class="btn">设置…</button>
+      <button id="saveBtn" type="button" class="btn primary">保存清单</button>
+    </div>
+  </footer>
+</div>
+
+<div id="settingsModal" class="modal" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-head">
+      <h2 id="settingsTitle">设置</h2>
+      <button id="sClose" type="button" class="iconbtn" aria-label="关闭">×</button>
+    </div>
+
+    <div class="field">
+      <label for="sDataDir">数据目录</label>
+      <div class="row">
+        <input id="sDataDir" type="text" spellcheck="false" placeholder="D:\AutoStartManager">
+        <button id="sBrowse" type="button" class="btn small">浏览…</button>
+      </div>
+      <p class="hint">配置、日志和运行状态都保存在这里。更改目录后程序会自动重启，旧目录文件会保留。</p>
+      <label class="checkline"><input type="checkbox" id="sMigrate" checked> 把现有配置和日志迁移到新目录</label>
+    </div>
+
+    <div class="field">
+      <label for="sRetention">日志保留</label>
+      <div class="row tight">
+        <input id="sRetention" type="number" min="1" max="365" step="1">
+        <span class="unit">天</span>
+      </div>
+      <p class="hint">启动时自动删除超过该天数的日志（1–365 天）。</p>
+    </div>
+
+    <p id="settingsErr" class="hint bad" hidden></p>
+
+    <div class="modal-actions">
+      <button id="sResetDir" type="button" class="btn">恢复默认目录</button>
+      <span class="spacer"></span>
+      <button id="sCancel" type="button" class="btn">取消</button>
+      <button id="sSave" type="button" class="btn primary">保存设置</button>
+    </div>
+  </div>
+  <div id="settingsBusy" class="modal-busy" hidden>
+    <div class="busy-card">
+      <span class="spinner big" aria-hidden="true"></span>
+      <p id="settingsBusyText" role="status" aria-live="polite">正在保存设置…</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+<script><!--{{JS}}--></script>
+</body>
+</html>
